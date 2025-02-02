@@ -142,6 +142,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const handleTurnEnd = useCallback(() => {
     const wasSearching = selectedAction === 'search';
     const wasExploring = selectedAction === 'explore';
+    const wasRunning = selectedAction === 'run';
     const wasAttacking = currentTurnLog.includes('Attacking');
 
     let pastTenseLog = currentTurnLog
@@ -187,6 +188,20 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
       } else {
         setPreviousTurnLog(`You rolled ${roll} and found nothing.`);
       }
+    } else if (wasRunning) {
+      const roll = Math.floor(Math.random() * 12) + 1;
+      if (roll <= 6) {
+        const newNode = Math.floor(Math.random() * 100 + 1).toString();
+        setCurrentNode(newNode);
+        setPreviousTurnLog(`You rolled ${roll} and successfully escaped to Node ${newNode}!`);
+      } else {
+        const damage = Math.floor(Math.random() * 4) + 1;
+        setPlayerStats(prev => ({
+          ...prev,
+          health: Math.max(0, prev.health - damage)
+        }));
+        setPreviousTurnLog(`You rolled ${roll}, failed to escape and took ${damage} damage!`);
+      }
     } else if (wasExploring) {
       const roll = Math.floor(Math.random() * 12) + 1;
       if (roll <= 8) {
@@ -224,7 +239,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
       setIsAttackMode(false);
       setSelectedEnemy('');
       setSelectedWeapon(null);
-      setCurrentTurnLog(action === 'search' ? 'Searching' : 'Exploring');
+      setCurrentTurnLog(action === 'search' ? 'Searching' : action === 'run' ? 'Running' : 'Exploring');
     };
   
     const handleEnemySelect = (enemyId: string) => {
@@ -372,11 +387,13 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                   data-tooltip="Roll 12 sided dice\n\n1-4 Find item\n5-12 Find nothing"
                 />
                 <SelectableTarget
-                  label="Explore"
-                  onSelect={() => handleActionSelect('explore')}
+                  label={simulateMultipleEnemies ? "Run" : "Explore"}
+                  onSelect={() => handleActionSelect(simulateMultipleEnemies ? 'run' : 'explore')}
                   onDeselect={() => handleActionSelect('')}
-                  isSelected={selectedAction === 'explore'}
-                  data-tooltip="Roll 12 sided dice\n\n1-8 Leave node\n9-11 Find nothing\n12 Find item"
+                  isSelected={selectedAction === 'explore' || selectedAction === 'run'}
+                  data-tooltip={simulateMultipleEnemies ? 
+                    "Roll 12 sided dice\n\n1-4 Escape node\n7-12 Take 1d4 damage and stay" :
+                    "Roll 12 sided dice\n\n1-8 Leave node\n9-11 Find nothing\n12 Find item"}
                 />
                 <SelectableTarget
                   label="Attack"
