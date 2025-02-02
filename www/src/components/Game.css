@@ -145,11 +145,41 @@
   padding: 10px;
   text-align: center;
   color: #fff;
-  .item.empty {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px dashed rgba(255, 255, 255, 0.1);
-    color: rgba(255, 255, 255, 0.3);
-  }
+  position: relative;
+}
+
+.item.empty {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.item-tooltip {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 5px;
+  width: max-content;
+  max-width: 250px;
+  min-width: 150px;
+  font-size: 0.9em;
+  color: #00ffff;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  text-align: center;
+}
+
+.item:hover .item-tooltip {
+  opacity: 1;
+  visibility: visible;
 }
 
 .game-actions {
@@ -170,6 +200,89 @@
   font-size: 1.1em;
   cursor: pointer;
   transition: all 0.3s ease;
+  position: relative;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 255, 255, 0.1);
+}
+
+.action-button.search {
+  background: linear-gradient(45deg, #2980b9, #3498db);
+}
+
+.action-button.explore {
+  background: linear-gradient(45deg, #27ae60, #2ecc71);
+}
+
+.action-button.attack {
+  background: linear-gradient(45deg, #c0392b, #e74c3c);
+}
+
+.item {
+  background: rgba(79, 209, 197, 0.1);
+  border: 1px solid rgba(79, 209, 197, 0.2);
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+  color: #fff;
+  position: relative;
+}
+
+.item.empty {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px dashed rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.3);
+}
+
+.item-tooltip {
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 5px;
+  width: max-content;
+  max-width: 250px;
+  min-width: 150px;
+  font-size: 0.9em;
+  color: #00ffff;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  text-align: center;
+}
+
+.item:hover .item-tooltip {
+  opacity: 1;
+  visibility: visible;
+}
+
+.game-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 20px;
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 15px;
+}
+
+.action-button {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 15px;
+  color: #fff;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
 }
 
 .action-button:hover {
@@ -179,6 +292,34 @@
 
 .action-button.search {
   background: linear-gradient(45deg, #2c3e50, #3498db);
+}
+
+.action-button.search::before {
+  content: "Roll 12 sided dice\A \A 1-4 Find item\A 5-12 Find nothing";
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 5px;
+  width: max-content;
+  max-width: 200px;
+  font-size: 0.9em;
+  color: #00ffff;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  white-space: pre;
+  text-align: center;
+  border-top: 1px solid rgba(0, 255, 255, 0.2)
+}
+
+.action-button.search:hover::before {
+  opacity: 1;
+  visibility: visible;
 }
 
 .action-button.search.active {
@@ -195,6 +336,34 @@
   background: linear-gradient(45deg, #2ecc71, #27ae60);
   box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
   transform: scale(1.05);
+}
+
+.action-button.explore::before {
+  content: "Roll 12 sided dice\A \A 1-8 Leave node\A 9-11 Find nothing\A 12 Find item";
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 5px;
+  width: max-content;
+  max-width: 200px;
+  font-size: 0.9em;
+  color: #00ffff;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  white-space: pre;
+  text-align: center;
+  border-top: 1px solid rgba(0, 255, 255, 0.2)
+}
+
+.action-button.explore:hover::before {
+  opacity: 1;
+  visibility: visible;
 }
 
 .action-button.attack {
@@ -214,4 +383,37 @@
   cursor: not-allowed;
   transform: none;
   box-shadow: none;
+}
+
+.selectable-target {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 15px;
+  color: #fff;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  position: relative;
+  width: 100%;
+}
+
+.selectable-target:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 255, 255, 0.1);
+}
+
+.selectable-target.active {
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+  box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+  transform: scale(1.05);
+  border: 2px solid #4fd1c5;
+}
+
+.selectable-target:disabled {
+  background: #333;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+  opacity: 0.5;
 }
