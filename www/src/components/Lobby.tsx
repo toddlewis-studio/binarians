@@ -78,6 +78,16 @@ const Lobby: React.FC<LobbyProps> = ({ onJoinGame }) => {
         >
           Play Now
         </button>
+
+        {process.env.NODE_ENV === 'development' && (
+          <button 
+            className="play-now-btn"
+            onClick={() => onJoinGame('TEST_WALLET_ADDRESS')}
+            style={{ background: 'linear-gradient(45deg, #ff6b6b, #ff8e8e)' }}
+          >
+            Test Play (Dev Only)
+          </button>
+        )}
       </div>
     </div>
   );

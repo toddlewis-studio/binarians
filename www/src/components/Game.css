@@ -1,0 +1,202 @@
+.game-container {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+  padding: 20px;
+}
+
+.game-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 15px;
+  margin-bottom: 20px;
+}
+
+.player-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.wallet-address {
+  color: #00ffff;
+  font-family: monospace;
+}
+
+.exit-button {
+  background: linear-gradient(45deg, #ff6b6b, #ff8e8e);
+  border: none;
+  border-radius: 25px;
+  padding: 8px 20px;
+  color: #000;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.exit-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(255, 107, 107, 0.3);
+}
+
+.game-content {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
+}
+
+.stats-panel {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 15px;
+  padding: 15px;
+}
+
+.stat-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+
+.stat-label {
+  min-width: 60px;
+  color: #888;
+}
+
+.stat-bar {
+  flex: 1;
+  height: 20px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 5px;
+  overflow: hidden;
+  position: relative;
+}
+
+.stat-value {
+  min-width: 50px;
+  text-align: right;
+  color: #fff;
+}
+
+.stat-fill {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 100%;
+  border-radius: 5px;
+  transition: width 0.3s ease;
+}
+
+.stat-fill.health {
+  background: linear-gradient(90deg, #ff4b4b, #ff6b6b);
+}
+
+.stat-fill.armor {
+  background: linear-gradient(90deg, #4b4bff, #6b6bff);
+}
+
+.stat-fill.energy {
+  background: linear-gradient(90deg, #4bff4b, #6bff6b);
+}
+
+.game-info {
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 15px;
+  padding: 20px;
+}
+
+.current-node {
+  font-size: 1.2em;
+  color: #00ffff;
+  margin-bottom: 20px;
+}
+
+.inventory {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 10px;
+  padding: 15px;
+}
+
+.inventory h3 {
+  color: #888;
+  margin: 0 0 15px 0;
+}
+
+.items-list {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.item {
+  background: rgba(0, 255, 255, 0.1);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 5px;
+  padding: 10px;
+  text-align: center;
+  color: #fff;
+  .item.empty {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px dashed rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.3);
+  }
+}
+
+.game-actions {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+  padding: 20px;
+  background: rgba(30, 30, 30, 0.95);
+  border-radius: 15px;
+}
+
+.action-button {
+  background: rgba(0, 0, 0, 0.5);
+  border: 1px solid rgba(0, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 15px;
+  color: #fff;
+  font-size: 1.1em;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.action-button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 5px 15px rgba(0, 255, 255, 0.1);
+}
+
+.action-button.search {
+  background: linear-gradient(45deg, #2c3e50, #3498db);
+}
+
+.action-button.explore {
+  background: linear-gradient(45deg, #27ae60, #2ecc71);
+}
+
+.action-button.attack {
+  background: linear-gradient(45deg, #c0392b, #e74c3c);
+}
+
+.turn-timer {
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 25px;
+  padding: 8px 20px;
+  color: #00ffff;
+  font-weight: bold;
+}
+
+.action-button:disabled {
+  background: #333;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
