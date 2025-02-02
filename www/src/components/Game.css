@@ -112,7 +112,7 @@
 .game-info {
   background: rgba(30, 30, 30, 0.95);
   border-radius: 15px;
-  padding: 20px;
+  padding: 10px;
 }
 
 .current-node {
@@ -154,20 +154,20 @@
   color: rgba(255, 255, 255, 0.3);
 }
 
-.item-tooltip {
+.tooltip-base {
   position: absolute;
   bottom: 120%;
   left: 50%;
   transform: translateX(-50%);
   padding: 10px;
   background: rgba(0, 0, 0, 0.9);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid rgba(79, 209, 197, 0.2);
   border-radius: 5px;
   width: max-content;
   max-width: 250px;
   min-width: 150px;
   font-size: 0.9em;
-  color: #00ffff;
+  color: #4fd1c5;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
@@ -175,6 +175,7 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   text-align: center;
+  pointer-events: none;
 }
 
 .item:hover .item-tooltip {
@@ -243,13 +244,13 @@
   transform: translateX(-50%);
   padding: 10px;
   background: rgba(0, 0, 0, 0.9);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid rgba(79, 209, 197, 0.2);
   border-radius: 5px;
   width: max-content;
   max-width: 250px;
   min-width: 150px;
   font-size: 0.9em;
-  color: #00ffff;
+  color: #4fd1c5;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
@@ -257,9 +258,10 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   text-align: center;
+  pointer-events: none;
 }
 
-.item:hover .item-tooltip {
+.item-container:hover .item-tooltip {
   opacity: 1;
   visibility: visible;
 }
@@ -294,30 +296,37 @@
   background: linear-gradient(45deg, #2c3e50, #3498db);
 }
 
-.action-button.search::before {
-  content: "Roll 12 sided dice\A \A 1-4 Find item\A 5-12 Find nothing";
+.action-button[data-tooltip]:before,
+.item[data-tooltip]:before,
+.selectable-target[data-tooltip]:before {
+  content: attr(data-tooltip);
   position: absolute;
   bottom: 120%;
   left: 50%;
   transform: translateX(-50%);
   padding: 10px;
   background: rgba(0, 0, 0, 0.9);
-  border: 1px solid rgba(0, 255, 255, 0.2);
+  border: 1px solid rgba(79, 209, 197, 0.2);
   border-radius: 5px;
   width: max-content;
   max-width: 200px;
   font-size: 0.9em;
-  color: #00ffff;
+  color: #4fd1c5;
   opacity: 0;
   visibility: hidden;
   transition: all 0.3s ease;
   z-index: 1000;
-  white-space: pre;
+  white-space: pre-wrap;
   text-align: center;
-  border-top: 1px solid rgba(0, 255, 255, 0.2)
+  pointer-events: none;
 }
 
-.action-button.search:hover::before {
+.action-button[data-tooltip]:hover:before,
+.action-button[data-tooltip]:focus:before,
+.item[data-tooltip]:hover:before,
+.item[data-tooltip]:focus:before,
+.selectable-target[data-tooltip]:hover:before,
+.selectable-target[data-tooltip]:focus:before {
   opacity: 1;
   visibility: visible;
 }
@@ -336,34 +345,6 @@
   background: linear-gradient(45deg, #2ecc71, #27ae60);
   box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
   transform: scale(1.05);
-}
-
-.action-button.explore::before {
-  content: "Roll 12 sided dice\A \A 1-8 Leave node\A 9-11 Find nothing\A 12 Find item";
-  position: absolute;
-  bottom: 120%;
-  left: 50%;
-  transform: translateX(-50%);
-  padding: 10px;
-  background: rgba(0, 0, 0, 0.9);
-  border: 1px solid rgba(0, 255, 255, 0.2);
-  border-radius: 5px;
-  width: max-content;
-  max-width: 200px;
-  font-size: 0.9em;
-  color: #00ffff;
-  opacity: 0;
-  visibility: hidden;
-  transition: all 0.3s ease;
-  z-index: 1000;
-  white-space: pre;
-  text-align: center;
-  border-top: 1px solid rgba(0, 255, 255, 0.2)
-}
-
-.action-button.explore:hover::before {
-  opacity: 1;
-  visibility: visible;
 }
 
 .action-button.attack {
@@ -418,8 +399,120 @@
   opacity: 0.5;
 }
 
+.selectable-target[data-tooltip]:before {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: 120%;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.9);
+  border: 1px solid rgba(79, 209, 197, 0.2);
+  border-radius: 5px;
+  width: max-content;
+  max-width: 200px;
+  font-size: 0.9em;
+  color: #4fd1c5;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+  z-index: 1000;
+  white-space: pre;
+  text-align: center;
+}
+
+.selectable-target[data-tooltip]:hover:before,
+.selectable-target[data-tooltip]:focus:before {
+  opacity: 1;
+  visibility: visible;
+}
+
 @keyframes pulsate {
   0% { background-color: rgba(0, 0, 0, 0.2); }
   50% { background-color: rgba(79, 209, 197, var(--pulse-opacity)); }
   100% { background-color: rgba(0, 0, 0, 0.2); }
+}
+
+.turn-logs {
+  margin-top: 10px;
+}
+
+.turn-log-card {
+  padding: 15px;
+  background-color: rgba(0, 0, 0, 0.2);
+  border-radius: 4px;
+  min-height: 100px;
+  font-size: 0.9em;
+  color: #4fd1c5;
+}
+
+.turn-log-current {
+  margin-bottom: 15px;
+  font-weight: bold;
+  color: #4fd1c5;
+}
+
+.turn-log-divider {
+  width: 100%;
+  height: 2px;
+  background: linear-gradient(to right, transparent, rgba(79, 209, 197, 0.5), transparent);
+  margin: 15px 0;
+}
+
+.turn-log-previous {
+  color: #ffffff;
+}
+
+.current-node-text {
+  font-size: 1.2em;
+  font-weight: bold;
+}
+
+.current-node-stats {
+  font-size: 0.9em;
+  color: #4fd1c5;
+  padding: 4px 8px;
+  border-radius: 4px;
+  margin-top: 4px;
+}
+
+.items-list {
+  margin-top: 40px;
+}
+
+.testing-card {
+  margin-top: 20px;
+  padding: 10px;
+  background-color: rgba(0, 0, 0, 0.1);
+  border-radius: 4px;
+}
+
+.testing-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.end-turn-button {
+  background-color: #4a5568;
+  color: #fff;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 4px;
+  cursor: pointer;
+  width: 100%;
+}
+
+.stats-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+}
+
+.stat-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }

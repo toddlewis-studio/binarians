@@ -1,8 +1,8 @@
-import { PlayerStats } from './Game';
+import * as GameTypes from '../types/game.ts';
 
 interface PlayerCardProps {
   walletAddress: string;
-  playerStats: PlayerStats;
+  playerStats: GameTypes.PlayerStats;
   isAttackMode: boolean;
   selectedEnemy: string;
   enemyId: string;
@@ -57,7 +57,7 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           <div className="stat-bar" style={{ flexGrow: 1 }}>
             <div
               className="stat-fill health"
-              style={{ width: `${(playerStats.health / 54) * 100}%` }}
+              style={{ width: `${(playerStats.health / 36) * 100}%` }}
             />
           </div>
           <div className="stat-bar" style={{ flexGrow: 1 }}>

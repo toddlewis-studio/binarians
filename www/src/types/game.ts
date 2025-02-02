@@ -42,3 +42,27 @@ export interface GameState {
   waitTime: number;
   turnTime: number;
 }
+
+export interface PlayerStats {
+  health: number;
+  armor: number;
+  items: ItemStats[];
+}
+
+export interface GameProps {
+  walletAddress: string;
+  onExit: () => void;
+}
+
+export interface ItemStats {
+  name: string;
+  description: string;
+  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
+  type: 'Weapon' | 'Armor' | 'Other';
+  damage?: number;
+  effects?: string[];
+  armorGen?: number;
+  maxArmorBoost?: number;
+  maxUses: number;
+  currentUses: number;
+}

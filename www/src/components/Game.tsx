@@ -1,35 +1,13 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import './Game.css';
-import PlayerCard from './PlayerCard';
 import SelectableTarget from './SelectableTarget';
+import EnemyList from './EnemyList';
+import * as GameTypes from '../types/game.ts';
 
-interface GameProps {
-  walletAddress: string;
-  onExit: () => void;
-}
-
-interface ItemStats {
-  name: string;
-  description: string;
-  rarity: 'Common' | 'Uncommon' | 'Rare' | 'Epic' | 'Legendary';
-  type: 'Weapon' | 'Armor' | 'Other';
-  damage?: number;
-  effects?: string[];
-  armorGen?: number;
-  maxArmorBoost?: number;
-  maxUses: number;
-  currentUses: number;
-}
-
-interface PlayerStats {
-  health: number;
-  armor: number;
-  items: ItemStats[];
-}
-
-const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
-  const [playerStats, setPlayerStats] = useState<PlayerStats>({
-    health: 54,
+const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
+  const [testPlayerConnected, setTestPlayerConnected] = useState<boolean>(false);
+  const [playerStats, setPlayerStats] = useState<GameTypes.PlayerStats>({
+    health: 36,
     armor: 0,
     items: []
   });
@@ -37,23 +15,21 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
   const [currentNode, setCurrentNode] = useState<string>(Math.floor(Math.random() * 100 + 1).toString());
   const [remainingNodes, setRemainingNodes] = useState<number>(100);
   const [connectedPlayers, setConnectedPlayers] = useState<number>(100);
-  const [testPlayerConnected, setTestPlayerConnected] = useState<boolean>(false);
+  const [simulateMultipleEnemies, setSimulateMultipleEnemies] = useState<boolean>(false);
   const [isAttackMode, setIsAttackMode] = useState<boolean>(false);
   const [selectedEnemy, setSelectedEnemy] = useState<string>('');
-  const [enemyWalletAddress] = useState<string>('DwZJ7XFqPJuFzR9VuQ8eKxGv7nxhzWfPpU5VLs9UPHv2');
-  const [testPlayerStats] = useState<PlayerStats>({health: 35, armor: 45, items: []});
   const [selectedAction, setSelectedAction] = useState<string>('');
   const [currentTurnLog, setCurrentTurnLog] = useState<string>('');
   const [previousTurnLog, setPreviousTurnLog] = useState<string>('');
   const [turnNumber, setTurnNumber] = useState<number>(1);
 
-  const getItemDescription = (item: ItemStats): string => {
+  const getItemDescription = (item: GameTypes.ItemStats): string => {
     let description = `[${item.rarity}]\n${item.description}`;
     return description;
   };
 
-  const getRandomItem = (): ItemStats => {
-    const items: ItemStats[] = [
+  const getRandomItem = (): GameTypes.ItemStats => {
+    const items: GameTypes.ItemStats[] = [
       {
         name: 'Dual Daggers',
         description: '2d4',
@@ -150,8 +126,10 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
     ];
     return { ...items[Math.floor(Math.random() * items.length)] };
   };
+  
+  const [selectedWeapon, setSelectedWeapon] = useState<GameTypes.ItemStats | null>(null);
 
-  const handleAddItem = useCallback((item: ItemStats) => {
+  const handleAddItem = useCallback((item: GameTypes.ItemStats) => {
     if (playerStats.items.length < 3) {
       setPlayerStats(prev => ({
         ...prev,
@@ -164,12 +142,28 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
   const handleTurnEnd = useCallback(() => {
     const wasSearching = selectedAction === 'search';
     const wasExploring = selectedAction === 'explore';
-    const pastTenseLog = currentTurnLog
+    const wasAttacking = currentTurnLog.includes('Attacking');
+
+    let pastTenseLog = currentTurnLog
+      .replace('Attacking', 'Attacked')
       .replace('Exploring', 'Explored')
       .replace('Picking a target', 'Did nothing')
       .replace('Selecting target', 'Did nothing')
-      .replace('Attacking', 'Attacked')
       .replace('Doing nothing', 'Did nothing');
+
+    if (wasAttacking) {
+      const baseDamage = selectedWeapon?.damage || 4; // 1d4 for fists
+      const diceCount = Math.floor(baseDamage / 4) || 1;
+      const diceSize = baseDamage / diceCount;
+      let totalDamage = 0;
+
+      for (let i = 0; i < diceCount; i++) {
+        totalDamage += Math.floor(Math.random() * diceSize) + 1;
+      }
+
+      pastTenseLog = `${currentTurnLog} for ${totalDamage} dmg! (${diceCount}d${diceSize})`;
+    }
+
     setPreviousTurnLog(pastTenseLog);
     setSelectedAction('');
     setIsAttackMode(false);
@@ -207,7 +201,7 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
         setPreviousTurnLog(`You rolled ${roll} and discovered ${foundItem.name}!`);
       }
     }
-  }, [selectedAction, currentTurnLog, handleAddItem, getRandomItem]);
+  }, [selectedAction, currentTurnLog, handleAddItem, getRandomItem, selectedWeapon]);
 
 
 
@@ -252,8 +246,7 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
       setCurrentTurnLog('Picking a target');
     };
   
-    const [selectedWeapon, setSelectedWeapon] = useState<ItemStats | null>(null);
-    const handleItemClick = (item: ItemStats) => {
+    const handleItemClick = (item: GameTypes.ItemStats) => {
       if (item.type === 'Weapon' && item.currentUses > 0) {
         if (selectedWeapon === item) {
           setSelectedWeapon(null);
@@ -290,18 +283,18 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
         <div className="game-content">
           <div className="stats-panel">
             <div className="stat-item">
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', width: '100%' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+              <div className="stats-container">
+                <div className="stat-row">
                   <span className="stat-label">Health</span>
                   <div className="stat-bar">
                     <div 
                       className="stat-fill health"
-                      style={{ width: `${(playerStats.health / 54) * 100}%` }}
+                      style={{ width: `${(playerStats.health / 36) * 100}%` }}
                     />
                   </div>
-                  <span className="stat-value">{playerStats.health}/54</span>
+                  <span className="stat-value">{playerStats.health}/36</span>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div className="stat-row">
                   <span className="stat-label">Armor</span>
                   <div className="stat-bar">
                     <div 
@@ -315,57 +308,35 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
               </div>
             </div>
   
-            <div className="turn-logs" style={{ marginTop: '20px' }}>
-              <div className="turn-log-card" style={{ 
-                padding: '15px',
-                backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                borderRadius: '4px',
-                minHeight: '100px',
-                fontSize: '0.9em',
-                color: '#4fd1c5'
-              }}>
-                <div style={{ marginBottom: '15px', fontWeight: 'bold', color: '#4fd1c5' }}>{currentTurnLog}</div>
-                <div style={{
-                  width: '100%',
-                  height: '2px',
-                  background: 'linear-gradient(to right, transparent, rgba(79, 209, 197, 0.5), transparent)',
-                  margin: '15px 0'
-                }} />
-                <div style={{ color: '#ffffff' }}>{previousTurnLog}</div>
+            <div className="turn-logs">
+              <div className="turn-log-card">
+                <div className="turn-log-current">{currentTurnLog}</div>
+                <div className="turn-log-divider" />
+                <div className="turn-log-previous">{previousTurnLog}</div>
               </div>
             </div>
   
             <div className="game-info">
               <div className="current-node">
                 <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Node {currentNode} ({Math.max(1, testPlayerConnected ? 2 : 1)})</span>
-                <div style={{
-                  fontSize: '0.9em',
-                  color: '#4fd1c5',
-                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
-                  padding: '4px 8px',
-                  borderRadius: '4px',
-                  marginTop: '4px'
-                }}>
-                  {remainingNodes} Nodes & {connectedPlayers} Total Players
+                <div className="current-node-stats">
+                  {remainingNodes} nodes & {connectedPlayers} players remaining
                 </div>
               </div>
-              {testPlayerConnected && (
-                <PlayerCard
-                  walletAddress={enemyWalletAddress}
-                  playerStats={testPlayerStats}
-                  isAttackMode={isAttackMode}
-                  selectedEnemy={selectedEnemy}
-                  enemyId="test-enemy"
-                  onEnemySelect={isAttackMode ? handleEnemySelect : undefined}
-                />
-              )}
-              <div className="items-list" style={{ marginTop: '10px' }}>
+              <EnemyList
+                isAttackMode={isAttackMode}
+                selectedEnemy={selectedEnemy}
+                onEnemySelect={handleEnemySelect}
+                simulateMultipleEnemies={simulateMultipleEnemies}
+              />
+              <div className="items-list">
                 {[0, 1, 2].map((slot) => (
                   <div key={slot} className="item-container">
                     {playerStats.items[slot] ? (
                       <SelectableTarget
                         label={playerStats.items[slot].name}
                         isDisabled={playerStats.items[slot].type !== 'Weapon' || playerStats.items[slot].currentUses <= 0}
+                        data-tooltip={getItemDescription(playerStats.items[slot])}
                         onSelect={() => {
                           setSelectedWeapon(playerStats.items[slot]);
                           setCurrentTurnLog(`Selecting target for ${playerStats.items[slot].name}`);
@@ -392,22 +363,25 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
                   </div>
                 ))}
               </div>
-              <div className="game-actions" style={{ marginTop: '10px' }}>
+              <div className="game-actions">
                 <SelectableTarget
                   label="Search"
                   onSelect={() => handleActionSelect('search')}
                   onDeselect={() => handleActionSelect('')}
                   isSelected={selectedAction === 'search'}
+                  data-tooltip="Roll 12 sided dice\n\n1-4 Find item\n5-12 Find nothing"
                 />
                 <SelectableTarget
                   label="Explore"
                   onSelect={() => handleActionSelect('explore')}
                   onDeselect={() => handleActionSelect('')}
                   isSelected={selectedAction === 'explore'}
+                  data-tooltip="Roll 12 sided dice\n\n1-8 Leave node\n9-11 Find nothing\n12 Find item"
                 />
                 <SelectableTarget
                   label="Attack"
                   isDisabled={connectedPlayers < 2}
+                  data-tooltip="Basic Attack: 1d4 damage"
                   onSelect={() => {
                     setIsAttackMode(true);
                     setSelectedAction('');
@@ -423,36 +397,51 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
                   isSelected={isAttackMode && !selectedWeapon}
                 />
               </div>
-              <div className="testing-card" style={{ marginTop: '20px', padding: '10px', backgroundColor: 'rgba(0, 0, 0, 0.1)', borderRadius: '4px' }}>
+              <div className="testing-card">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                   <input
                     type="checkbox"
-                    checked={testPlayerConnected}
-                    onChange={(e) => setTestPlayerConnected(e.target.checked)}
+                    checked={simulateMultipleEnemies}
+                    onChange={(e) => setSimulateMultipleEnemies(e.target.checked)}
                     style={{ margin: 0 }}
                   />
-                  <span>Simulate Enemy</span>
+                  <span>Simulate Multiple Enemies</span>
                 </div>
-                <button
-                  onClick={handleTurnEnd}
-                  style={{
-                    backgroundColor: '#4a5568',
-                    color: '#fff',
-                    border: 'none',
-                    padding: '8px 16px',
-                    borderRadius: '4px',
-                    cursor: 'pointer',
-                    width: '100%'
-                  }}
-                >
-                  End Turn (Dev Only)
-                </button>
+                <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', flexDirection: 'column' }}>
+                  <button
+                    onClick={() => {
+                      const lasersword = {
+                        name: 'Lasersword',
+                        description: '3d8',
+                        rarity: 'Epic',
+                        type: 'Weapon',
+                        damage: 24,
+                        maxUses: 3,
+                        currentUses: 3
+                      };
+                      setPlayerStats(prev => ({
+                        ...prev,
+                        items: [lasersword, ...prev.items.slice(0, 2)]
+                      }));
+                    }}
+                    className="end-turn-button"
+                    style={{ flex: 1 }}
+                  >
+                    Add Lasersword
+                  </button>
+                  <button
+                    onClick={handleTurnEnd}
+                    className="end-turn-button"
+                    style={{ flex: 1 }}
+                  >
+                    End Turn
+                  </button>
+                </div>
               </div>
             </div>
           </div>
         </div>
       </div>
-  );
-};
-
+    );
+  };
 export default Game;
