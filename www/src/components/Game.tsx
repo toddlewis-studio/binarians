@@ -25,12 +25,10 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
   const [isAttackMode, setIsAttackMode] = useState<boolean>(false);
   const [selectedEnemy, setSelectedEnemy] = useState<string>('');
   const [enemyWalletAddress] = useState<string>('DwZJ7XFqPJuFzR9VuQ8eKxGv7nxhzWfPpU5VLs9UPHv2');
-  const [testPlayerStats] = useState<PlayerStats>({
-    health: 35,
-    armor: 45,
-    items: []
-  });
+  const [testPlayerStats] = useState<PlayerStats>({health: 35, armor: 45, items: []});
   const [selectedAction, setSelectedAction] = useState<string>('');
+  const [currentTurnLog, setCurrentTurnLog] = useState<string>('');
+  const [previousTurnLog, setPreviousTurnLog] = useState<string>('');
 
   useEffect(() => {
     setConnectedPlayers(testPlayerConnected ? 2 : 1);
@@ -43,6 +41,8 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
           setSelectedAction('');
           setIsAttackMode(false);
           setSelectedEnemy('');
+          setPreviousTurnLog(currentTurnLog);
+          setCurrentTurnLog('Doing nothing...');
           return 18;
         }
         return prev - 1;
@@ -50,18 +50,20 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
     }, 1000);
 
     return () => clearInterval(timer);
-  }, []);
+  }, [currentTurnLog]);
 
   const handleActionSelect = (action: string) => {
     setSelectedAction(action);
     setIsAttackMode(false);
     setSelectedEnemy('');
+    setCurrentTurnLog(action === 'search' ? 'Searching' : 'Exploring');
   };
 
   const handleEnemySelect = (enemyId: string) => {
     if (isAttackMode) {
       setSelectedEnemy(enemyId);
       setIsAttackMode(false);
+      setCurrentTurnLog(`Attacking ${enemyId.slice(0, 4)}...${enemyId.slice(-4)}`);
     }
   };
 
@@ -71,12 +73,14 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
         ...prev,
         items: [...prev.items, item]
       }));
+      setCurrentTurnLog(`Added item: ${item}`);
     }
   };
 
   const handleAttackClick = () => {
     setIsAttackMode(true);
     setSelectedAction('');
+    setCurrentTurnLog('Picking a target');
   };
 
   return (
@@ -117,6 +121,26 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
                 <span className="stat-value">{playerStats.armor}</span>
               </div>
 
+            </div>
+          </div>
+
+          <div className="turn-logs" style={{ marginTop: '20px' }}>
+            <div className="turn-log-card" style={{ 
+              padding: '15px',
+              backgroundColor: 'rgba(0, 0, 0, 0.2)',
+              borderRadius: '4px',
+              minHeight: '100px',
+              fontSize: '0.9em',
+              color: '#e0e0e0'
+            }}>
+              <div style={{ marginBottom: '15px' }}>{currentTurnLog}</div>
+              <div style={{
+                width: '100%',
+                height: '2px',
+                background: 'linear-gradient(to right, transparent, rgba(79, 209, 197, 0.5), transparent)',
+                margin: '15px 0'
+              }} />
+              <div>{previousTurnLog}</div>
             </div>
           </div>
 
@@ -167,9 +191,11 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
                     setIsAttackMode(false);
                     setSelectedAction('');
                     setSelectedEnemy('');
+                    setCurrentTurnLog('Doing nothing...');
                   } else if (selectedEnemy) {
                     setSelectedEnemy('');
                     setIsAttackMode(true);
+                    setCurrentTurnLog('Picking a target');
                   } else {
                     handleAttackClick();
                     setSelectedAction('');

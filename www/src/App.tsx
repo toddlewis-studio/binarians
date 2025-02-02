@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Lobby from './components/Lobby';
 import Game from './components/Game';
 import WaitingRoom from './components/WaitingRoom';
@@ -8,6 +8,17 @@ function App() {
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [gameStarted, setGameStarted] = useState<boolean>(false);
   const [isTestPlay, setIsTestPlay] = useState<boolean>(false);
+
+  useEffect(() => {
+    // Update document title based on current page
+    if (!walletAddress) {
+      document.title = 'Binarians | Lobby';
+    } else if (gameStarted) {
+      document.title = 'Binarians | Game';
+    } else {
+      document.title = 'Binarians | Waiting Room';
+    }
+  }, [walletAddress, gameStarted]);
 
   const handleJoinGame = (address: string) => {
     setWalletAddress(address);
