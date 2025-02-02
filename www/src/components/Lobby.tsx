@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react';
-import { Connection, PublicKey } from '@solana/web3.js';
 import './Lobby.css';
 
 interface LobbyProps {
@@ -9,6 +8,15 @@ interface LobbyProps {
 const Lobby: React.FC<LobbyProps> = ({ onJoinGame }) => {
   const [walletAddress, setWalletAddress] = useState<string>('');
   const [playerCount, setPlayerCount] = useState<number>(0);
+
+  useEffect(() => {
+    // Simulate players joining (for demo purposes)
+    const interval = setInterval(() => {
+      setPlayerCount(prev => Math.min(prev + Math.floor(Math.random() * 3), 100));
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
   const [isConnecting, setIsConnecting] = useState<boolean>(false);
 
   const ENTRY_FEE = 0.005; // SOL
@@ -85,7 +93,7 @@ const Lobby: React.FC<LobbyProps> = ({ onJoinGame }) => {
             onClick={() => onJoinGame('TEST_WALLET_ADDRESS')}
             style={{ background: 'linear-gradient(45deg, #ff6b6b, #ff8e8e)' }}
           >
-            Test Play (Dev Only)
+            Test Play
           </button>
         )}
       </div>

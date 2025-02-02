@@ -35,7 +35,8 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
   });
   const [turnTimer, setTurnTimer] = useState<number>(18);
   const [currentNode, setCurrentNode] = useState<string>(Math.floor(Math.random() * 100 + 1).toString());
-  const [connectedPlayers, setConnectedPlayers] = useState<number>(1);
+  const [remainingNodes, setRemainingNodes] = useState<number>(100);
+  const [connectedPlayers, setConnectedPlayers] = useState<number>(100);
   const [testPlayerConnected, setTestPlayerConnected] = useState<boolean>(false);
   const [isAttackMode, setIsAttackMode] = useState<boolean>(false);
   const [selectedEnemy, setSelectedEnemy] = useState<string>('');
@@ -44,10 +45,7 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
   const [selectedAction, setSelectedAction] = useState<string>('');
   const [currentTurnLog, setCurrentTurnLog] = useState<string>('');
   const [previousTurnLog, setPreviousTurnLog] = useState<string>('');
-
-  useEffect(() => {
-    setConnectedPlayers(testPlayerConnected ? 2 : 1);
-  }, [testPlayerConnected]);
+  const [turnNumber, setTurnNumber] = useState<number>(1);
 
   const getItemDescription = (item: ItemStats): string => {
     let description = `[${item.rarity}]\n${item.description}`;
@@ -165,6 +163,7 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
 
   const handleTurnEnd = useCallback(() => {
     const wasSearching = selectedAction === 'search';
+    const wasExploring = selectedAction === 'explore';
     const pastTenseLog = currentTurnLog
       .replace('Exploring', 'Explored')
       .replace('Picking a target', 'Did nothing')
@@ -178,6 +177,12 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
     setSelectedWeapon(null);
     setCurrentTurnLog('Doing nothing...');
     setTurnTimer(18);
+    setTurnNumber(prev => prev + 1);
+
+    // Update remaining nodes and players
+    setRemainingNodes(prev => Math.max(1, prev - 1));
+    const playerReduction = Math.floor(Math.random() * 4); // 0-3 players
+    setConnectedPlayers(prev => Math.max(1, prev - playerReduction));
   
     if (wasSearching) {
       const roll = Math.floor(Math.random() * 12) + 1;
@@ -187,6 +192,19 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
         setPreviousTurnLog(`You rolled ${roll} and found ${foundItem.name}!`);
       } else {
         setPreviousTurnLog(`You rolled ${roll} and found nothing.`);
+      }
+    } else if (wasExploring) {
+      const roll = Math.floor(Math.random() * 12) + 1;
+      if (roll <= 8) {
+        const newNode = Math.floor(Math.random() * 100 + 1).toString();
+        setCurrentNode(newNode);
+        setPreviousTurnLog(`You rolled ${roll} and moved to Node ${newNode}!`);
+      } else if (roll <= 11) {
+        setPreviousTurnLog(`You rolled ${roll} and found no path forward.`);
+      } else {
+        const foundItem = getRandomItem();
+        handleAddItem(foundItem);
+        setPreviousTurnLog(`You rolled ${roll} and discovered ${foundItem.name}!`);
       }
     }
   }, [selectedAction, currentTurnLog, handleAddItem, getRandomItem]);
@@ -265,7 +283,7 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
             </span>
           </div>
           <div className="turn-timer">
-            Turn: {turnTimer}s
+            Turn {turnNumber}: {turnTimer}s
           </div>
         </div>
   
@@ -319,7 +337,17 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
   
             <div className="game-info">
               <div className="current-node">
-                <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Node {currentNode} Connected {connectedPlayers}</span>
+                <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Node {currentNode} ({Math.max(1, testPlayerConnected ? 2 : 1)})</span>
+                <div style={{
+                  fontSize: '0.9em',
+                  color: '#4fd1c5',
+                  backgroundColor: 'rgba(0, 0, 0, 0.2)',
+                  padding: '4px 8px',
+                  borderRadius: '4px',
+                  marginTop: '4px'
+                }}>
+                  {remainingNodes} Nodes & {connectedPlayers} Total Players
+                </div>
               </div>
               {testPlayerConnected && (
                 <PlayerCard
