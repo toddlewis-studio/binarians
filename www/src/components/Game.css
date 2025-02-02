@@ -417,3 +417,9 @@
   box-shadow: none;
   opacity: 0.5;
 }
+
+@keyframes pulsate {
+  0% { background-color: rgba(0, 0, 0, 0.2); }
+  50% { background-color: rgba(79, 209, 197, var(--pulse-opacity)); }
+  100% { background-color: rgba(0, 0, 0, 0.2); }
+}

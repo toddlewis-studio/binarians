@@ -252,7 +252,13 @@ const Game: React.FC<GameProps> = ({ walletAddress, onExit }) => {
   
     return (
       <div className="game-container">
-        <div className="game-header">
+        <div className="game-header" style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+          padding: '15px',
+          borderRadius: '4px',
+          animation: turnTimer <= 6 ? 'pulsate 1s infinite ease-in-out' : 'none',
+          '--pulse-opacity': `${0.2 + (1 - Math.min(turnTimer, 6)/6) * 0.3}`
+        }}>
           <div className="player-info">
             <span className="wallet-address">
               {`${walletAddress.slice(0, 4)}...${walletAddress.slice(-4)}`}
