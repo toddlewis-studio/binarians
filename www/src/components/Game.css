@@ -4,6 +4,9 @@
   min-height: 100vh;
   background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
   padding: 20px;
+  max-width: 1200px;
+  margin: 0 auto;
+  width: 100%;
 }
 
 .game-header {
@@ -178,8 +181,20 @@
   background: linear-gradient(45deg, #2c3e50, #3498db);
 }
 
+.action-button.search.active {
+  background: linear-gradient(45deg, #3498db, #2c3e50);
+  box-shadow: 0 0 15px rgba(52, 152, 219, 0.5);
+  transform: scale(1.05);
+}
+
 .action-button.explore {
   background: linear-gradient(45deg, #27ae60, #2ecc71);
+}
+
+.action-button.explore.active {
+  background: linear-gradient(45deg, #2ecc71, #27ae60);
+  box-shadow: 0 0 15px rgba(46, 204, 113, 0.5);
+  transform: scale(1.05);
 }
 
 .action-button.attack {
