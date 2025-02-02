@@ -152,8 +152,8 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
       .replace('Selecting target', 'Did nothing')
       .replace('Doing nothing', 'Did nothing');
 
-    if (wasAttacking) {
-      const baseDamage = selectedWeapon?.damage || 4; // 1d4 for fists
+    if (wasAttacking && selectedWeapon) {
+      const baseDamage = selectedWeapon.damage || 4; // 1d4 for fists
       const diceCount = Math.floor(baseDamage / 4) || 1;
       const diceSize = baseDamage / diceCount;
       let totalDamage = 0;
@@ -161,6 +161,20 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
       for (let i = 0; i < diceCount; i++) {
         totalDamage += Math.floor(Math.random() * diceSize) + 1;
       }
+
+      // Update weapon uses and remove if depleted
+      setPlayerStats(prev => {
+        const updatedItems = prev.items.map(item => 
+          item === selectedWeapon 
+            ? { ...item, currentUses: item.currentUses - 1 }
+            : item
+        ).filter(item => item.currentUses > 0);
+
+        return {
+          ...prev,
+          items: updatedItems
+        };
+      });
 
       pastTenseLog = `${currentTurnLog} for ${totalDamage} dmg! (${diceCount}d${diceSize})`;
     }
