@@ -7,7 +7,7 @@ import * as GameTypes from '../types/game.ts';
 const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const [testPlayerConnected, setTestPlayerConnected] = useState<boolean>(false);
   const [playerStats, setPlayerStats] = useState<GameTypes.PlayerStats>({
-    health: 36,
+    health: 18,
     armor: 0,
     items: []
   });
@@ -48,8 +48,8 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   };
 
   const generateEnemyStats = (): GameTypes.PlayerStats => ({
-    health: Math.floor(Math.random() * 16) + 20, // Random health between 20-35
-    armor: Math.floor(Math.random() * 46), // Random armor between 0-45
+    health: Math.floor(Math.random() * 9) + 9, // Random health between 9-18
+    armor: Math.floor(Math.random() * 9), // Random armor between 0-9
     items: []
   });
 
@@ -58,7 +58,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
     return description;
   };
 
-  const getRandomItem = (): GameTypes.ItemStats => {
+  const getItems = () => {
     const items: GameTypes.ItemStats[] = [
       {
         name: 'Dual Daggers',
@@ -81,7 +81,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
       },
       {
         name: 'Samurai Sword',
-        description: '1d8',
+        description: '2d4',
         rarity: 'Common',
         type: 'Weapon',
         damage: 8,
@@ -99,7 +99,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
       },
       {
         name: 'Crossbow',
-        description: '1d12',
+        description: '3d4',
         rarity: 'Rare',
         type: 'Weapon',
         damage: 12,
@@ -108,10 +108,10 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
       },
       {
         name: 'Lasersword',
-        description: '3d8',
+        description: '4d4',
         rarity: 'Epic',
         type: 'Weapon',
-        damage: 24,
+        damage: 16,
         maxUses: 3,
         currentUses: 3
       },
@@ -121,9 +121,8 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
         rarity: 'Common',
         type: 'Armor',
         armorGen: 2,
-        maxArmorBoost: 4,
-        maxUses: 3,
-        currentUses: 3
+        maxUses: 2,
+        currentUses: 2
       },
       {
         name: 'Shield',
@@ -131,9 +130,8 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
         rarity: 'Rare',
         type: 'Armor',
         armorGen: 1,
-        maxArmorBoost: 8,
-        maxUses: 3,
-        currentUses: 3
+        maxUses: 6,
+        currentUses: 6
       },
       {
         name: 'Antivirus',
@@ -141,7 +139,6 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
         rarity: 'Epic',
         type: 'Armor',
         armorGen: 3,
-        maxArmorBoost: 6,
         maxUses: 3,
         currentUses: 3
       },
@@ -153,7 +150,12 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
         maxUses: 1,
         currentUses: 1
       }
-    ];
+    ]
+    return items
+  }
+
+  const getRandomItem = (): GameTypes.ItemStats => {
+    const items = getItems();
     return { ...items[Math.floor(Math.random() * items.length)] };
   };
   
@@ -186,8 +188,8 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
 
     if (wasAttacking) {
       const baseDamage = selectedWeapon ? selectedWeapon.damage : 4; // 1d4 for fists
-      const diceCount = Math.floor(baseDamage / 4) || 1;
-      const diceSize = baseDamage / diceCount;
+      const diceCount = Math.floor((baseDamage ?? 4) / 4) || 1;
+      const diceSize = (baseDamage ?? 4) / diceCount;
       let totalDamage = 0;
 
       for (let i = 0; i < diceCount; i++) {
@@ -213,23 +215,50 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
       // Update enemy health and remove if defeated
       const updatedEnemies = enemies.map(enemy => {
         if (enemy.walletAddress === selectedEnemy) {
-          const newHealth = Math.max(0, enemy.stats.health - totalDamage);
+          const enemyArmor = enemy.stats.armor || 0;
+          const damageToArmor = Math.min(enemyArmor, totalDamage);
+          const remainingDamage = totalDamage - damageToArmor;
+          const newArmor = Math.max(0, enemyArmor - damageToArmor);
+          const newHealth = Math.max(0, enemy.stats.health - remainingDamage);
+  
           if (newHealth <= 0) {
             setConnectedPlayers(prev => Math.max(1, prev - 1));
             return null;
           }
           return {
             ...enemy,
-            stats: { ...enemy.stats, health: newHealth }
+            stats: { ...enemy.stats, health: newHealth, armor: newArmor }
           };
         }
         return enemy;
       }).filter(Boolean) as GameTypes.EnemyStats[];
-
+  
       setEnemies(updatedEnemies);
   
       pastTenseLog = `${currentTurnLog} for ${totalDamage} dmg! (${diceCount}d${diceSize})`;
     }
+
+    // Handle armor items
+    const armorItems = playerStats.items.filter(item => item.type === 'Armor' && item.currentUses > 0);
+    armorItems.forEach(item => {
+      if (item.armorGen) {
+        setPlayerStats(prev => {
+          let newArmor = prev.armor + (item.armorGen || 0);
+          if (newArmor > 18) newArmor = 18;
+          const updatedItems = prev.items.map(i => 
+            i === item
+              ? { ...i, currentUses: i.currentUses - 1 }
+              : i
+          ).filter(i => i.currentUses > 0);
+  
+          return {
+            ...prev,
+            armor: newArmor,
+            items: updatedItems
+          };
+        });
+      }
+    });
 
     setPreviousTurnLog(pastTenseLog);
     setSelectedAction('');
@@ -290,10 +319,8 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   useEffect(() => {
     const timer = setInterval(() => {
       setTurnTimer((prev) => {
-        if (prev <= 1) {
-          if (!isEndingTurn) {
-            handleTurnEnd();
-          }
+        if (prev <= 1 && !isEndingTurn) {
+          handleTurnEnd();
           return prev;
         }
         return prev - 1;
@@ -372,17 +399,17 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                   <div className="stat-bar">
                     <div 
                       className="stat-fill health"
-                      style={{ width: `${(playerStats.health / 36) * 100}%` }}
+                      style={{ width: `${(playerStats.health / 18) * 100}%` }}
                     />
                   </div>
-                  <span className="stat-value">{playerStats.health}/36</span>
+                  <span className="stat-value">{playerStats.health}</span>
                 </div>
                 <div className="stat-row">
                   <span className="stat-label">Armor</span>
                   <div className="stat-bar">
                     <div 
                       className="stat-fill armor"
-                      style={{ width: `${(playerStats.armor / 100) * 100}%` }}
+                      style={{ width: `${(playerStats.armor / 18) * 100}%` }}
                     />
                   </div>
                   <span className="stat-value">{playerStats.armor}</span>
@@ -496,15 +523,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', flexDirection: 'column' }}>
                   <button
                     onClick={() => {
-                      const lasersword = {
-                        name: 'Lasersword',
-                        description: '3d8',
-                        rarity: 'Epic',
-                        type: 'Weapon',
-                        damage: 24,
-                        maxUses: 3,
-                        currentUses: 3
-                      };
+                      const lasersword = getItems().find(i => i.name === 'Lasersword');
                       setPlayerStats(prev => ({
                         ...prev,
                         items: [lasersword as GameTypes.ItemStats, ...prev.items.slice(0, 2)]
