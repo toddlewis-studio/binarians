@@ -7,38 +7,16 @@ interface EnemyListProps {
   selectedEnemy: string;
   onEnemySelect: (enemyId: string) => void;
   simulateMultipleEnemies: boolean;
+  enemies: GameTypes.EnemyStats[];
 }
-
-const generateRandomWallet = () => {
-  const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
-  let wallet = '';
-  for (let i = 0; i < 44; i++) {
-    wallet += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return wallet;
-};
-
-const generateEnemyStats = (): GameTypes.PlayerStats => ({
-  health: Math.floor(Math.random() * 16) + 20, // Random health between 20-35
-  armor: Math.floor(Math.random() * 46), // Random armor between 0-45
-  items: []
-});
 
 const EnemyList: React.FC<EnemyListProps> = ({
   isAttackMode,
   selectedEnemy,
   onEnemySelect,
-  simulateMultipleEnemies
+  simulateMultipleEnemies,
+  enemies
 }) => {
-  const enemies = React.useMemo(() => {
-    if (!simulateMultipleEnemies) return [];
-    const count = Math.floor(Math.random() * 3) + 2;
-    return Array.from({ length: count }, () => ({
-      walletAddress: generateRandomWallet(),
-      stats: generateEnemyStats()
-    }));
-  }, [simulateMultipleEnemies]);
-
   return (
     <div className="enemies-list">
       {enemies.map((enemy) => (

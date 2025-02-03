@@ -24,6 +24,35 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const [turnNumber, setTurnNumber] = useState<number>(1);
   const [isEndingTurn, setIsEndingTurn] = useState<boolean>(false);
   const [enemies, setEnemies] = useState<GameTypes.EnemyStats[]>([]);
+  
+  useEffect(() => {
+    if (simulateMultipleEnemies) {
+      const count = Math.floor(Math.random() * 3) + 2;
+      const newEnemies = Array.from({ length: count }, () => ({
+        walletAddress: generateRandomWallet(),
+        stats: generateEnemyStats()
+      }));
+      setEnemies(newEnemies);
+    } else {
+      setEnemies([]);
+    }
+  }, [simulateMultipleEnemies]);
+
+  const generateRandomWallet = () => {
+    const chars = '123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';
+    let wallet = '';
+    for (let i = 0; i < 44; i++) {
+      wallet += chars[Math.floor(Math.random() * chars.length)];
+    }
+    return wallet;
+  };
+
+  const generateEnemyStats = (): GameTypes.PlayerStats => ({
+    health: Math.floor(Math.random() * 16) + 20, // Random health between 20-35
+    armor: Math.floor(Math.random() * 46), // Random armor between 0-45
+    items: []
+  });
+
   const getItemDescription = (item: GameTypes.ItemStats): string => {
     let description = `[${item.rarity}]\n${item.description}`;
     return description;
@@ -173,33 +202,32 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
               ? { ...item, currentUses: item.currentUses - 1 }
               : item
           ).filter(item => item.currentUses > 0);
-
+      
           return {
             ...prev,
             items: updatedItems
           };
         });
       }
-
+  
       // Update enemy health and remove if defeated
-      if (selectedEnemy) {
-        const updatedEnemies = enemies.map(enemy => {
-          if (enemy.walletAddress === selectedEnemy) {
-            const newHealth = Math.max(0, enemy.stats.health - totalDamage);
-            if (newHealth <= 0) {
-              setConnectedPlayers(prev => Math.max(1, prev - 1));
-              return null;
-            }
-            return {
-              ...enemy,
-              stats: { ...enemy.stats, health: newHealth }
-            };
+      const updatedEnemies = enemies.map(enemy => {
+        if (enemy.walletAddress === selectedEnemy) {
+          const newHealth = Math.max(0, enemy.stats.health - totalDamage);
+          if (newHealth <= 0) {
+            setConnectedPlayers(prev => Math.max(1, prev - 1));
+            return null;
           }
-          return enemy;
-        }).filter(Boolean);
-        setEnemies(updatedEnemies as GameTypes.EnemyStats[]);
-      }
+          return {
+            ...enemy,
+            stats: { ...enemy.stats, health: newHealth }
+          };
+        }
+        return enemy;
+      }).filter(Boolean) as GameTypes.EnemyStats[];
 
+      setEnemies(updatedEnemies);
+  
       pastTenseLog = `${currentTurnLog} for ${totalDamage} dmg! (${diceCount}d${diceSize})`;
     }
 
@@ -320,11 +348,10 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
     return (
       <div className="game-container">
         <div className="game-header" style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.2)',
+          backgroundColor: 'rgba(0, 0, 0, 0.6)',
           padding: '15px',
           borderRadius: '4px',
-          animation: turnTimer <= 6 ? 'pulsate 1s infinite ease-in-out' : 'none',
-          opacity: `${0.2 + (1 - Math.min(turnTimer, 6)/6) * 0.3}`
+          animation: turnTimer <= 6 ? 'pulsate 1s infinite ease-in-out' : 'none'
         }}>
           <div className="player-info">
             <span className="wallet-address">
@@ -384,6 +411,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                 selectedEnemy={selectedEnemy}
                 onEnemySelect={handleEnemySelect}
                 simulateMultipleEnemies={simulateMultipleEnemies}
+                enemies={enemies}
               />
               <div className="items-list">
                 {[0, 1, 2].map((slot) => (
