@@ -8,6 +8,7 @@ interface SelectableTargetProps {
   showUses?: boolean;
   uses?: number;
   isSelected?: boolean;
+  'data-tooltip'?: string;
 }
 
 const SelectableTarget: React.FC<SelectableTargetProps> = ({
@@ -18,6 +19,7 @@ const SelectableTarget: React.FC<SelectableTargetProps> = ({
   showUses = false,
   uses = 0,
   isSelected = false,
+  'data-tooltip': dataTooltip
 }) => {
   const [internalSelected, setInternalSelected] = useState(isSelected);
 
@@ -41,9 +43,7 @@ const SelectableTarget: React.FC<SelectableTargetProps> = ({
       className={`selectable-target ${internalSelected ? 'active' : ''}`}
       onClick={handleClick}
       disabled={isDisabled}
-      data-tooltip={label === 'Search' ? "Roll 12 sided dice\n\n1-4 Find item\n5-12 Find nothing" : 
-               label === 'Explore' ? "Roll 12 sided dice\n\n1-8 Leave node\n9-11 Find nothing\n12 Find item" : 
-               undefined}
+      data-tooltip={dataTooltip}
       style={{
         background: label === 'Search' ? 'linear-gradient(45deg, #2980b9, #3498db)' :
                   label === 'Explore' ? 'linear-gradient(45deg, #27ae60, #2ecc71)' :

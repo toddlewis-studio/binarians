@@ -22,6 +22,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const [currentTurnLog, setCurrentTurnLog] = useState<string>('');
   const [previousTurnLog, setPreviousTurnLog] = useState<string>('');
   const [turnNumber, setTurnNumber] = useState<number>(1);
+  const [isEndingTurn, setIsEndingTurn] = useState<boolean>(false);
 
   const getItemDescription = (item: GameTypes.ItemStats): string => {
     let description = `[${item.rarity}]\n${item.description}`;
@@ -140,6 +141,8 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   }, [playerStats.items.length]);
 
   const handleTurnEnd = useCallback(() => {
+    if (isEndingTurn) return;
+    setIsEndingTurn(true);
     const wasSearching = selectedAction === 'search';
     const wasExploring = selectedAction === 'explore';
     const wasRunning = selectedAction === 'run';
@@ -185,8 +188,9 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
     setSelectedEnemy('');
     setSelectedWeapon(null);
     setCurrentTurnLog('Doing nothing...');
-    setTurnTimer(18);
     setTurnNumber(prev => prev + 1);
+    setIsEndingTurn(false);
+    setTurnTimer(18);
 
     // Update remaining nodes and players
     setRemainingNodes(prev => Math.max(1, prev - 1));
@@ -238,15 +242,17 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
     const timer = setInterval(() => {
       setTurnTimer((prev) => {
         if (prev <= 1) {
-          handleTurnEnd();
-          return 18;
+          if (!isEndingTurn) {
+            handleTurnEnd();
+          }
+          return prev;
         }
         return prev - 1;
       });
     }, 1000);
   
     return () => clearInterval(timer);
-  }, [handleTurnEnd]);
+  }, [handleTurnEnd, isEndingTurn]);
 
   const handleActionSelect = (action: string) => {
       setSelectedAction(action);
@@ -398,7 +404,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                   onSelect={() => handleActionSelect('search')}
                   onDeselect={() => handleActionSelect('')}
                   isSelected={selectedAction === 'search'}
-                  data-tooltip="Roll 12 sided dice\n\n1-4 Find item\n5-12 Find nothing"
+                  data-tooltip={"Roll 12 sided dice\n\n1-4 Find item\n5-12 Find nothing"}
                 />
                 <SelectableTarget
                   label={simulateMultipleEnemies ? "Run" : "Explore"}
@@ -406,7 +412,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                   onDeselect={() => handleActionSelect('')}
                   isSelected={selectedAction === 'explore' || selectedAction === 'run'}
                   data-tooltip={simulateMultipleEnemies ? 
-                    "Roll 12 sided dice\n\n1-4 Escape node\n7-12 Take 1d4 damage and stay" :
+                    "Roll 12 sided dice\n\n1-6 Escape node\n7-12 Take 1d4 damage and stay" :
                     "Roll 12 sided dice\n\n1-8 Leave node\n9-11 Find nothing\n12 Find item"}
                 />
                 <SelectableTarget
