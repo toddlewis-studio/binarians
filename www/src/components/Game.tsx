@@ -8,7 +8,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const [testPlayerConnected, setTestPlayerConnected] = useState<boolean>(false);
   const [playerStats, setPlayerStats] = useState<GameTypes.PlayerStats>({
     health: 18,
-    armor: 0,
+    armor: 3,
     items: []
   });
   const [turnTimer, setTurnTimer] = useState<number>(18);
