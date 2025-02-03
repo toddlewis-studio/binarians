@@ -49,6 +49,11 @@ export interface PlayerStats {
   items: ItemStats[];
 }
 
+export interface EnemyStats {
+  walletAddress: string,
+  stats: PlayerStats
+}
+
 export interface GameProps {
   walletAddress: string;
   onExit: () => void;

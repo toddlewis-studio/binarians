@@ -23,7 +23,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const [previousTurnLog, setPreviousTurnLog] = useState<string>('');
   const [turnNumber, setTurnNumber] = useState<number>(1);
   const [isEndingTurn, setIsEndingTurn] = useState<boolean>(false);
-
+  const [enemies, setEnemies] = useState<GameTypes.EnemyStats[]>([]);
   const getItemDescription = (item: GameTypes.ItemStats): string => {
     let description = `[${item.rarity}]\n${item.description}`;
     return description;
@@ -155,8 +155,8 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
       .replace('Selecting target', 'Did nothing')
       .replace('Doing nothing', 'Did nothing');
 
-    if (wasAttacking && selectedWeapon) {
-      const baseDamage = selectedWeapon.damage || 4; // 1d4 for fists
+    if (wasAttacking) {
+      const baseDamage = selectedWeapon ? selectedWeapon.damage : 4; // 1d4 for fists
       const diceCount = Math.floor(baseDamage / 4) || 1;
       const diceSize = baseDamage / diceCount;
       let totalDamage = 0;
@@ -165,19 +165,40 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
         totalDamage += Math.floor(Math.random() * diceSize) + 1;
       }
 
-      // Update weapon uses and remove if depleted
-      setPlayerStats(prev => {
-        const updatedItems = prev.items.map(item => 
-          item === selectedWeapon 
-            ? { ...item, currentUses: item.currentUses - 1 }
-            : item
-        ).filter(item => item.currentUses > 0);
+      if (selectedWeapon) {
+        // Update weapon uses and remove if depleted
+        setPlayerStats(prev => {
+          const updatedItems = prev.items.map(item => 
+            item === selectedWeapon 
+              ? { ...item, currentUses: item.currentUses - 1 }
+              : item
+          ).filter(item => item.currentUses > 0);
 
-        return {
-          ...prev,
-          items: updatedItems
-        };
-      });
+          return {
+            ...prev,
+            items: updatedItems
+          };
+        });
+      }
+
+      // Update enemy health and remove if defeated
+      if (selectedEnemy) {
+        const updatedEnemies = enemies.map(enemy => {
+          if (enemy.walletAddress === selectedEnemy) {
+            const newHealth = Math.max(0, enemy.stats.health - totalDamage);
+            if (newHealth <= 0) {
+              setConnectedPlayers(prev => Math.max(1, prev - 1));
+              return null;
+            }
+            return {
+              ...enemy,
+              stats: { ...enemy.stats, health: newHealth }
+            };
+          }
+          return enemy;
+        }).filter(Boolean);
+        setEnemies(updatedEnemies as GameTypes.EnemyStats[]);
+      }
 
       pastTenseLog = `${currentTurnLog} for ${totalDamage} dmg! (${diceCount}d${diceSize})`;
     }
@@ -303,7 +324,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
           padding: '15px',
           borderRadius: '4px',
           animation: turnTimer <= 6 ? 'pulsate 1s infinite ease-in-out' : 'none',
-          '--pulse-opacity': `${0.2 + (1 - Math.min(turnTimer, 6)/6) * 0.3}`
+          opacity: `${0.2 + (1 - Math.min(turnTimer, 6)/6) * 0.3}`
         }}>
           <div className="player-info">
             <span className="wallet-address">
@@ -458,7 +479,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                       };
                       setPlayerStats(prev => ({
                         ...prev,
-                        items: [lasersword, ...prev.items.slice(0, 2)]
+                        items: [lasersword as GameTypes.ItemStats, ...prev.items.slice(0, 2)]
                       }));
                     }}
                     className="end-turn-button"
