@@ -3,6 +3,7 @@ import './Game.css';
 import SelectableTarget from './SelectableTarget';
 import EnemyList from './EnemyList';
 import * as GameTypes from '../types/game.ts';
+import StatusEffects from './StatusEffects.tsx';
 
 const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const [testPlayerConnected, setTestPlayerConnected] = useState<boolean>(false);
@@ -27,11 +28,35 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const [corpses, setCorpses] = useState<{walletAddress: string, items: GameTypes.ItemStats[]}[]>([]);
   const [selectedCorpse, setSelectedCorpse] = useState<string | null>(null);
   const [isCorpseModalOpen, setIsCorpseModalOpen] = useState<boolean>(false);
-  
+  const [playerStatuses, setPlayerStatuses] = useState<GameTypes.Status[]>([]);
+
+  const generateRandomStatus = (): GameTypes.Status => {
+    const glitches: GameTypes.GlitchType[] = ['fatigued', 'overwhelmed', 'horrified', 'paranoid'];
+    const hacks: GameTypes.HackType[] = ['spiritual', 'adrenaline', 'mamasCookin', 'payToWin'];
+    
+    const isHack = Math.random() > 0.5;
+    const statusTypes = isHack ? hacks : glitches;
+    const type = statusTypes[Math.floor(Math.random() * statusTypes.length)];
+    const duration = Math.floor(Math.random() * 4) + 1; // 1d4 turns
+    
+    return { type, duration };
+  };
+
+  const handleNodeChange = () => {
+    const newStatus = generateRandomStatus();
+    setPlayerStatuses(prev => [...prev, newStatus]);
+  };
+
+  useEffect(() => {
+    if (turnNumber > 1) { // Only add status effects after the first turn
+      handleNodeChange();
+    }
+  }, [currentNode]);
+
   useEffect(() => {
     if (simulateMultipleEnemies) {
-      const count = Math.floor(Math.random() * 3) + 2;
-      const newEnemies = Array.from({ length: count }, () => ({
+      const enemyCount = Math.floor(Math.random() * 3) + 1; // 1-3 enemies
+      const newEnemies = Array.from({ length: enemyCount }, () => ({
         walletAddress: generateRandomWallet(),
         stats: generateEnemyStats()
       }));
@@ -181,6 +206,17 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const handleTurnEnd = useCallback(() => {
     if (isEndingTurn) return;
     setIsEndingTurn(true);
+
+    // Update status durations and remove expired statuses
+    setPlayerStatuses(prevStatuses => {
+      return prevStatuses
+        .map(status => ({
+          ...status,
+          duration: status.duration - 1
+        }))
+        .filter(status => status.duration > 0);
+    });
+
     const wasSearching = selectedAction === 'search';
     const wasExploring = selectedAction === 'explore';
     const wasRunning = selectedAction === 'run';
@@ -426,7 +462,9 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                   </div>
                   <span className="stat-value">{playerStats.armor}</span>
                 </div>
-  
+                <StatusEffects
+                  statuses={playerStatuses}
+                />
               </div>
             </div>
   

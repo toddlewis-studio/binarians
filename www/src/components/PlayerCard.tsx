@@ -1,4 +1,5 @@
 import * as GameTypes from '../types/game.ts';
+import StatusEffects from './StatusEffects';
 
 interface PlayerCardProps {
   walletAddress: string;
@@ -7,6 +8,7 @@ interface PlayerCardProps {
   selectedEnemy: string;
   enemyId: string;
   onEnemySelect?: (enemyId: string) => void;
+  statuses?: GameTypes.Status[];
 }
 
 const PlayerCard: React.FC<PlayerCardProps> = ({
@@ -15,7 +17,8 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
   isAttackMode,
   selectedEnemy,
   enemyId,
-  onEnemySelect
+  onEnemySelect,
+  statuses = []
 }) => {
   const isSelectable = isAttackMode && onEnemySelect;
   const isSelected = !isAttackMode && selectedEnemy === enemyId;
@@ -90,6 +93,9 @@ const PlayerCard: React.FC<PlayerCardProps> = ({
           </div>
         </div>
       </div>
+      {statuses && statuses.length > 0 && (
+        <StatusEffects statuses={statuses} />
+      )}
     </CardComponent>
   );
 };

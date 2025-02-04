@@ -1,0 +1,58 @@
+.status-effects {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.status-effect {
+  position: relative;
+  padding: 4px 8px;
+  border-radius: 4px;
+  font-size: 0.9em;
+  cursor: pointer;
+}
+
+.status-effect.hack {
+  border: 1px solid #48bb78;
+  background-color: rgba(72, 187, 120, 0.1);
+  color: #48bb78;
+}
+
+.status-effect.glitch {
+  border: 1px solid #f56565;
+  background-color: rgba(245, 101, 101, 0.1);
+  color: #f56565;
+}
+
+.status-tooltip {
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: rgba(0, 0, 0, 0.9);
+  border-radius: 4px;
+  padding: 8px;
+  min-width: 200px;
+  z-index: 1000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.2s ease;
+  pointer-events: none;
+  text-align: center;
+}
+
+.status-effect:hover .status-tooltip {
+  opacity: 1;
+  visibility: visible;
+  bottom: calc(100% + 5px);
+}
+
+.status-tooltip p {
+  margin: 4px 0;
+  color: #fff;
+}
+
+.status-tooltip p:first-child {
+  color: #4fd1c5;
+}
