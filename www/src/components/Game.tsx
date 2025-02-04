@@ -24,6 +24,9 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const [turnNumber, setTurnNumber] = useState<number>(1);
   const [isEndingTurn, setIsEndingTurn] = useState<boolean>(false);
   const [enemies, setEnemies] = useState<GameTypes.EnemyStats[]>([]);
+  const [corpses, setCorpses] = useState<{walletAddress: string, items: GameTypes.ItemStats[]}[]>([]);
+  const [selectedCorpse, setSelectedCorpse] = useState<string | null>(null);
+  const [isCorpseModalOpen, setIsCorpseModalOpen] = useState<boolean>(false);
   
   useEffect(() => {
     if (simulateMultipleEnemies) {
@@ -47,11 +50,15 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
     return wallet;
   };
 
-  const generateEnemyStats = (): GameTypes.PlayerStats => ({
-    health: Math.floor(Math.random() * 9) + 9, // Random health between 9-18
-    armor: Math.floor(Math.random() * 9), // Random armor between 0-9
-    items: []
-  });
+  const generateEnemyStats = (): GameTypes.PlayerStats => {
+    const itemCount = Math.floor(Math.random() * 3); // 0-2 items
+    const items = Array.from({ length: itemCount }, () => getRandomItem());
+    return {
+      health: Math.floor(Math.random() * 9) + 9, // Random health between 9-18
+      armor: Math.floor(Math.random() * 9), // Random armor between 0-9
+      items
+    }
+  };
 
   const getItemDescription = (item: GameTypes.ItemStats): string => {
     let description = `[${item.rarity}]\n${item.description}`;
@@ -222,7 +229,12 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
           const newHealth = Math.max(0, enemy.stats.health - remainingDamage);
   
           if (newHealth <= 0) {
+            console.log(`Enemy ${enemy.walletAddress} defeated. Inventory:`, enemy.stats.items);
             setConnectedPlayers(prev => Math.max(1, prev - 1));
+            if (enemy.stats.items.length > 0) {
+              console.log(`Creating corpse with items:`, enemy.stats.items);
+              setCorpses(prev => [...prev, { walletAddress: enemy.walletAddress, items: enemy.stats.items }]);
+            }
             return null;
           }
           return {
@@ -440,6 +452,29 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                 simulateMultipleEnemies={simulateMultipleEnemies}
                 enemies={enemies}
               />
+              <div className="corpses-list" style={{ marginTop: '20px', padding: '0 15px' }}>
+                {corpses.map(corpse => (
+                  <button
+                    key={corpse.walletAddress}
+                    onClick={() => {
+                      setSelectedCorpse(corpse.walletAddress);
+                      setIsCorpseModalOpen(true);
+                    }}
+                    className="corpse-button"
+                    style={{
+                      background: 'rgba(255, 0, 0, 0.2)',
+                      border: '1px solid rgba(255, 0, 0, 0.3)',
+                      padding: '8px 12px',
+                      margin: '4px',
+                      borderRadius: '4px',
+                      cursor: 'pointer',
+                      color: '#fff'
+                    }}
+                  >
+                    {corpse.walletAddress.slice(0, 4)}...{corpse.walletAddress.slice(-4)}
+                  </button>
+                ))}
+              </div>
               <div className="items-list">
                 {[0, 1, 2].map((slot) => (
                   <div key={slot} className="item-container">
@@ -546,6 +581,139 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
             </div>
           </div>
         </div>
+
+        {isCorpseModalOpen && selectedCorpse && (
+          <div className="modal-overlay" style={{
+            position: 'fixed',
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: 'rgba(0, 0, 0, 0.85)',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            zIndex: 1000
+          }}>
+            <div className="modal-content" style={{
+              background: '#1a1a1a',
+              padding: '20px',
+              borderRadius: '8px',
+              maxWidth: '500px',
+              width: '90%'
+            }}>
+              <h3 style={{ color: '#fff', marginBottom: '20px' }}>Corpse Inventory</h3>
+              <div className="inventory-grid" style={{
+                display: 'grid',
+                gridTemplateColumns: '1fr 1fr',
+                gap: '20px',
+                marginBottom: '20px'
+              }}>
+                <div className="corpse-items" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <h4 style={{ color: '#fff', marginBottom: '10px' }}>Corpse Items</h4>
+                  {corpses.find(c => c.walletAddress === selectedCorpse)?.items.map((item, index) => (
+                    item && (
+                      <div 
+                        key={index} 
+                        className="item-slot"
+                        onClick={() => {
+                          if (playerStats.items.length < 3) {
+                            setCorpses(prevCorpses => {
+                              const updatedCorpses = [...prevCorpses];
+                              const corpse = updatedCorpses.find(c => c.walletAddress === selectedCorpse);
+                              if (!corpse) return prevCorpses;
+
+                              try{
+                                handleAddItem(item);
+                                corpse.items = corpse.items.filter(i => i!==item);
+
+                                if (corpse.items.length === 0) {
+                                  setIsCorpseModalOpen(false);
+                                  setSelectedCorpse(null);
+                                  return updatedCorpses.filter(c => c.walletAddress !== selectedCorpse);
+                                }
+                              } catch (e) {
+                                console.error(e);
+                              }
+
+                              return updatedCorpses;
+                            });
+                          }
+                        }}
+                        style={{
+                          padding: '8px',
+                          background: 'rgba(255, 255, 255, 0.1)',
+                          borderRadius: '4px',
+                          cursor: playerStats.items.length < 3 ? 'pointer' : 'not-allowed',
+                          position: 'relative'
+                        }}
+                      >
+                        {item.name}
+                        <div className="item-tooltip" style={{
+                          position: 'absolute',
+                          bottom: '100%',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          background: '#000',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          display: 'none',
+                          zIndex: 1
+                        }}>{getItemDescription(item)}</div>
+                      </div>
+                    )
+                  ))}
+                </div>
+                <div className="player-items" style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <h4 style={{ color: '#fff', marginBottom: '10px' }}>Your Items</h4>
+                  {[0, 1, 2].map((index) => (
+                    <div 
+                      key={index} 
+                      className="item-slot"
+                      style={{
+                        padding: '8px',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        borderRadius: '4px',
+                        position: 'relative'
+                      }}
+                    >
+                      {playerStats.items[index] ? playerStats.items[index].name : 'Empty'}
+                      {playerStats.items[index] && (
+                        <div className="item-tooltip" style={{
+                          position: 'absolute',
+                          bottom: '100%',
+                          left: '50%',
+                          transform: 'translateX(-50%)',
+                          background: '#000',
+                          padding: '8px',
+                          borderRadius: '4px',
+                          display: 'none',
+                          zIndex: 1
+                        }}>{getItemDescription(playerStats.items[index])}</div>
+                      )}
+                    </div>
+                  ))}
+                </div>
+              </div>
+              <button 
+                onClick={() => {
+                  setSelectedCorpse(null);
+                  setIsCorpseModalOpen(false);
+                }}
+                style={{
+                  padding: '8px 16px',
+                  background: '#ff6b6b',
+                  border: 'none',
+                  borderRadius: '4px',
+                  color: '#fff',
+                  cursor: 'pointer'
+                }}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     );
   };

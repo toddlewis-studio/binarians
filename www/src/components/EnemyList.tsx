@@ -21,7 +21,7 @@ const EnemyList: React.FC<EnemyListProps> = ({
     <div className="enemies-list">
       {enemies.map((enemy) => (
         <PlayerCard
-          key={enemy.walletAddress}
+          key={`${enemy.walletAddress}-${Date.now()}`}
           walletAddress={enemy.walletAddress}
           playerStats={enemy.stats}
           isAttackMode={isAttackMode}
