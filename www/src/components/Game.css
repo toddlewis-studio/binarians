@@ -428,9 +428,9 @@
 }
 
 @keyframes pulsate {
-  0% { background-color: rgba(0, 0, 0, 0.6); }
+  0% { background-color: rgba(30, 30, 30, 0.95); }
   50% { background-color: rgba(79, 209, 197, 0.6); }
-  100% { background-color: rgba(0, 0, 0, 0.6); }
+  100% { background-color: rgba(30, 30, 30, 0.95); }
 }
 
 .turn-logs {

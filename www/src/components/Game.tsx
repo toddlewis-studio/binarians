@@ -375,7 +375,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
     return (
       <div className="game-container">
         <div className="game-header" style={{
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
+          backgroundColor: 'rgba(30, 30, 30, 0.95)',
           padding: '15px',
           borderRadius: '4px',
           animation: turnTimer <= 6 ? 'pulsate 1s infinite ease-in-out' : 'none'
@@ -428,7 +428,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   
             <div className="game-info">
               <div className="current-node">
-                <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Node {currentNode} ({Math.max(1, testPlayerConnected ? 2 : 1)})</span>
+                <span style={{ fontSize: '1.2em', fontWeight: 'bold' }}>Node {currentNode} ({1 + enemies.length})</span>
                 <div className="current-node-stats">
                   {remainingNodes} nodes & {connectedPlayers} players remaining
                 </div>

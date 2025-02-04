@@ -49,7 +49,8 @@ const Lobby: React.FC<LobbyProps> = ({ onJoinGame }) => {
   return (
     <div className="lobby-container">
       <div className="lobby-content">
-        <h1 className="lobby-title">Welcome to Binarians</h1>
+        <img src="/logo.webp" alt="Binarians Logo" className="binarian-logo" />
+        <h1 className="lobby-title">Binarians</h1>
         
         <div className="game-stats">
           <div className="stat-item">
