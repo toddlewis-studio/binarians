@@ -489,6 +489,9 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                 simulateMultipleEnemies={simulateMultipleEnemies}
                 enemies={enemies}
               />
+              <div className='portal-list'>
+                {/* portals go here */}
+              </div>
               <div className="corpses-list" style={{ marginTop: '20px', padding: '0 15px' }}>
                 {corpses.map(corpse => (
                   <button
