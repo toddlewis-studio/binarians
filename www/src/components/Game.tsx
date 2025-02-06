@@ -28,6 +28,7 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
   const [corpses, setCorpses] = useState<{walletAddress: string, items: GameTypes.ItemStats[]}[]>([]);
   const [selectedCorpse, setSelectedCorpse] = useState<string | null>(null);
   const [isCorpseModalOpen, setIsCorpseModalOpen] = useState<boolean>(false);
+  const [simulatePortal, setSimulatePortal] = useState<boolean>(false);
   const [playerStatuses, setPlayerStatuses] = useState<GameTypes.Status[]>([]);
 
   const generateRandomStatus = (): GameTypes.Status => {
@@ -265,10 +266,8 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
           const newHealth = Math.max(0, enemy.stats.health - remainingDamage);
   
           if (newHealth <= 0) {
-            console.log(`Enemy ${enemy.walletAddress} defeated. Inventory:`, enemy.stats.items);
             setConnectedPlayers(prev => Math.max(1, prev - 1));
             if (enemy.stats.items.length > 0) {
-              console.log(`Creating corpse with items:`, enemy.stats.items);
               setCorpses(prev => [...prev, { walletAddress: enemy.walletAddress, items: enemy.stats.items }]);
             }
             return null;
@@ -584,14 +583,25 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                 />
               </div>
               <div className="testing-card">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
-                  <input
-                    type="checkbox"
-                    checked={simulateMultipleEnemies}
-                    onChange={(e) => setSimulateMultipleEnemies(e.target.checked)}
-                    style={{ margin: 0 }}
-                  />
-                  <span>Simulate Multiple Enemies</span>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <input
+                      type="checkbox"
+                      checked={simulateMultipleEnemies}
+                      onChange={(e) => setSimulateMultipleEnemies(e.target.checked)}
+                      style={{ margin: 0 }}
+                    />
+                    <span>Simulate Multiple Enemies</span>
+                  </div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <input
+                      type="checkbox"
+                      checked={simulatePortal}
+                      onChange={(e) => setSimulatePortal(e.target.checked)}
+                      style={{ margin: 0 }}
+                    />
+                    <span>Simulate Portal</span>
+                  </div>
                 </div>
                 <div style={{ display: 'flex', gap: '10px', marginBottom: '10px', flexDirection: 'column' }}>
                   <button
