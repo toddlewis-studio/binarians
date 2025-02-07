@@ -490,7 +490,11 @@ const Game: React.FC<GameTypes.GameProps> = ({ walletAddress, onExit }) => {
                 enemies={enemies}
               />
               <div className='portal-list'>
-                {/* portals go here */}
+              {simulatePortal ? 
+                  <button className="portal-button">
+                    Portal: 45
+                  </button>
+                : ''}
               </div>
               <div className="corpses-list" style={{ marginTop: '20px', padding: '0 15px' }}>
                 {corpses.map(corpse => (

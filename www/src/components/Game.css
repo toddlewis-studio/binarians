@@ -516,3 +516,13 @@
   align-items: center;
   gap: 10px;
 }
+
+.portal-button {
+  background: rgba(0, 255, 255, 0.2);
+  border: 1px solid #00ffff;
+  padding: 8px 12px;
+  margin: 4px;
+  border-radius: 4px;
+  cursor: pointer;
+  color: #fff;
+}
